@@ -48,6 +48,9 @@ class ComicRock(object):
             end = len(chapter_list)
         for no, chapter_url in enumerate(chapter_list):
             chapter_no = no + 1
+            if no == 0 and 'chapter-0' in chapter_url:
+                chapter_no = no
+                start = 0
             if start <= chapter_no <= end:
                 self.download_issue(chapter_no, chapter_url, book_name, serialized_book_name, book_path)
         return book_path
@@ -58,6 +61,9 @@ class ComicRock(object):
         page_count = [int(s) for s in page_count.split() if s.isdigit()][0]
         issue_name = '{name}-{no}'.format(name=book_name, no=no)
         issue_path = os.path.join(book_path, issue_name)
+        archive_path = os.path.join(book_path, issue_name)
+        if os.path.exists(archive_path+'.cbz'):
+            return 0
         os.makedirs(issue_path, exist_ok=True)
         for page in range(1, page_count+1):
             print('Downloading Issue #{} Page {} of {}'.format(no, page, page_count), end='\r')
@@ -68,7 +74,6 @@ class ComicRock(object):
                 self.download_image(page_url, page_path)
             except Exception:
                 print('Error on saving page {} of {} issue {}'.format(page, book_name, no))
-        archive_path = os.path.join(book_path, issue_name)
         shutil.make_archive(archive_path, 'zip', issue_path)
         os.rename(archive_path+'.zip', archive_path+'.cbz')
         shutil.rmtree(issue_path)
