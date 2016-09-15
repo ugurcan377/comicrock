@@ -43,9 +43,9 @@ class ComicRock(object):
         book_path = os.path.join(self.download_path, book_name)
         os.makedirs(book_path, exist_ok=True)
         serialized_book_name = url.rpartition('/')[-1]
-        print('This book has {} issues. Downloading from {} to {}'.format(len(chapter_list), start, end))
         if end < 0:
             end = len(chapter_list)
+        print('This book has {} issues. Downloading from {} to {}'.format(len(chapter_list), start, end))
         for no, chapter_url in enumerate(chapter_list):
             chapter_no = no + 1
             if no == 0 and 'chapter-0' in chapter_url:
