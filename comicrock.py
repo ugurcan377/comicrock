@@ -22,10 +22,11 @@ def search(text):
 
 
 @cli.command()
-@click.option('--start', default=1, type=int, help='Download starting from this chapter')
+@click.option('--start', default=0, type=int, help='Download starting from this chapter')
 @click.option('--end', default=-1, type=int, help='Download to this chapter')
+@click.option('--dry-run', is_flag=True, help='Start a test run without downloading')
 @click.argument('key')
-def download(start, end, key):
+def download(start, end, dry_run, key):
     """Download the comic book series with given book key
         You can learn a book key with search command
     """
@@ -34,7 +35,7 @@ def download(start, end, key):
     book_name = comic.get_book_name(url)
     click.echo("Downloading {}, this may take a while for long series".format(book_name))
     try:
-        result = comic.download_series(url, start=start, end=end)
+        result = comic.download_series(url, start=start, end=end, dry_run=dry_run)
         click.echo('Download finished, enjoy your books at {}'.format(result))
     except requests.HTTPError as exc:
         click.echo('Download Failed: {}'.format(exc))
