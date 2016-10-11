@@ -3,7 +3,7 @@ from urllib.parse import urljoin
 import click
 import requests
 
-from comicrock.main import ComicRock
+from comicrock.comicrock import ComicRock
 
 
 @click.group()
@@ -57,5 +57,5 @@ def batch(keys):
             click.echo('Download Failed: {}'.format(exc))
 
 
-if __name__ == '__main__':
+def main():
     cli()
