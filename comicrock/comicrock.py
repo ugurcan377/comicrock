@@ -34,7 +34,8 @@ class ComicRock(object):
     def get_book_name(self, url, soup=None):
         if soup is None:
             soup = self.get_html(url)
-        return soup.select('td strong')[0].text
+        name = soup.select('td strong')[0].text
+        return name.replace('/', '-')
 
     def download_series(self, url, start=0, end=-1, dry_run=False):
         soup = self.get_html(url)
@@ -56,7 +57,7 @@ class ComicRock(object):
         soup = self.get_html(url)
         page_count = soup.select('div.ct-right div.label')[0].text
         page_count = [int(s) for s in page_count.split() if s.isdigit()][0]
-        issue_name = '{name}-{no}'.format(name=book_name, no=no)
+        issue_name = '{name}-{no}'.format(name=book_name, no='{0:03d}'.format(no))
         issue_path = os.path.join(book_path, issue_name)
         archive_path = os.path.join(book_path, issue_name)
         if not dry_run:
@@ -76,6 +77,7 @@ class ComicRock(object):
             os.rename(archive_path+'.zip', archive_path+'.cbz')
             shutil.rmtree(issue_path)
         else:
+            print(issue_path)
             print('Issue #{}, URL: {}, Pages: {}'.format(no, url, page_count))
 
     def download_image(self, url, path):

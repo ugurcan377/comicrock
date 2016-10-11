@@ -4,7 +4,7 @@ from setuptools import find_packages
 
 setup(
     name='comicrock',
-    version='0.1.0',
+    version='0.1.2',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     url='https://github.com/ugurcan377/comicrock',
     license='GPLv3',
