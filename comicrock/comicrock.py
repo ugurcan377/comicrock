@@ -48,8 +48,9 @@ class ComicRock(object):
             end = len(chapter_list)
         print('This book has {} issues.'.format(len(chapter_list)))
         for chapter_url in chapter_list:
-            chapter_no = int(chapter_url.rpartition('/')[-1].split('-')[-1])
-            if start <= chapter_no <= end:
+            chapter_no = chapter_url.rpartition('/')[-1].split('-')[-1]
+            no = int(chapter_no)
+            if start <= no <= end:
                 self.download_issue(chapter_no, chapter_url, book_name, serialized_book_name, book_path, dry_run)
         return book_path
 
@@ -57,7 +58,7 @@ class ComicRock(object):
         soup = self.get_html(url)
         page_count = soup.select('div.ct-right div.label')[0].text
         page_count = [int(s) for s in page_count.split() if s.isdigit()][0]
-        issue_name = '{name}-{no}'.format(name=book_name, no='{0:03d}'.format(no))
+        issue_name = '{name}-{no}'.format(name=book_name, no='{0:03d}'.format(int(no)))
         issue_path = os.path.join(book_path, issue_name)
         archive_path = os.path.join(book_path, issue_name)
         if not dry_run:

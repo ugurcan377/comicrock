@@ -1,3 +1,4 @@
+#! /usr/bin/python3
 from urllib.parse import urljoin
 
 import click
