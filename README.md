@@ -8,6 +8,7 @@ You need to know a book key to download a certain book. You can learn a book key
 ```
 comicrock.py search TEXT
 ```
+You can also use '--field' option to search for either authors or genres
 ### Downloading
 You can download a series with following command
 
