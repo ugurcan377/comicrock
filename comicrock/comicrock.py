@@ -18,6 +18,8 @@ class ComicRock(object):
         self.book_url = urljoin(self.base_url, 'comic/')
         self.image_url = urljoin(self.base_url, 'images/manga/')
         self.chapter_selector = '.ch-name'
+        self.author_selector = '.manga-details td span'
+        self.genre_selector = '.manga-details td a'
 
     def get_html(self, link):
         r = requests.get(link)

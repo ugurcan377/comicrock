@@ -5,6 +5,7 @@ import click
 import requests
 
 from comicrock.comicrock import ComicRock
+from comicrock.database import ComicDatabase
 
 
 @click.group()
@@ -57,6 +58,12 @@ def batch(keys):
         except requests.HTTPError as exc:
             click.echo('Download Failed: {}'.format(exc))
 
+
+@cli.command()
+def generatedb():
+    """Generate a comic database for better searching"""
+    database = ComicDatabase()
+    database.generate()
 
 def main():
     cli()
