@@ -13,6 +13,7 @@ class ComicRock(object):
 
     def __init__(self):
         self.download_path = os.path.expanduser('~/comics')
+        self.db_path = os.path.join(self.download_path, 'db.json')
         self.base_url = 'http://readcomics.tv'
         self.search_url = urljoin(self.base_url, 'comic-list')
         self.book_url = urljoin(self.base_url, 'comic/')

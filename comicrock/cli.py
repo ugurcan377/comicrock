@@ -14,13 +14,25 @@ def cli():
 
 
 @cli.command()
-@click.argument('text')
-def search(text):
-    """Search for a comic series"""
-    comic = ComicRock()
-    results = comic.search_comics(text)
-    for series in results:
-        click.echo('{name} ---> {url}'.format(name=series[0], url=series[1]))
+@click.argument('query')
+@click.option('--field', type=click.Choice(['author', 'genre']))
+@click.option('--verbose', is_flag=True)
+def search(query, field, verbose):
+    """Search for a comic series, author or genre"""
+    if not field:
+        field = 'name'
+    database = ComicDatabase()
+    try:
+        db = database.load()
+    except FileNotFoundError:
+        click.echo('Database Not Found! You can generate it with "comicrock generatedb"')
+        return -1
+    results = database.search(db, query, field)
+    if verbose:
+        click.echo(results)
+    else:
+        for k, v in results.items():
+            click.echo('{} ---> {} ({})'.format(k, v['name'], ', '.join(v['author'])))
 
 
 @cli.command()
