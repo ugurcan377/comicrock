@@ -1,6 +1,5 @@
 from io import BytesIO
 import os
-import re
 import shutil
 from urllib.parse import urljoin
 
@@ -19,6 +18,7 @@ class ComicRock(object):
         self.book_url = urljoin(self.base_url, 'comic/')
         self.image_url = urljoin(self.base_url, 'images/manga/')
         self.chapter_selector = '.ch-name'
+        self.book_name_selector = 'td strong'
         self.author_selector = '.manga-details td span'
         self.genre_selector = '.manga-details td a'
 
@@ -29,15 +29,10 @@ class ComicRock(object):
         soup = BeautifulSoup(r.text, 'html.parser')
         return soup
 
-    def search_comics(self, text):
-        soup = self.get_html(self.search_url)
-        tag_list = soup.find_all('a', attrs={'class': None}, string=re.compile(text, re.IGNORECASE))
-        return [(x.text, x['href'].rpartition('/')[-1]) for x in tag_list]
-
     def get_book_name(self, url, soup=None):
         if soup is None:
             soup = self.get_html(url)
-        name = soup.select('td strong')[0].text
+        name = soup.select(self.book_name_selector)[0].text
         return name.replace('/', '-')
 
     def download_series(self, url, start=0, end=-1, dry_run=False):
@@ -77,12 +72,15 @@ class ComicRock(object):
                     self.download_image(page_url, page_path)
                 except Exception:
                     print('Error on saving page {} of {} issue {}'.format(page, book_name, no))
-            shutil.make_archive(archive_path, 'zip', issue_path)
-            os.rename(archive_path+'.zip', archive_path+'.cbz')
-            shutil.rmtree(issue_path)
+            self.package_issue(archive_path, issue_path)
         else:
             print(issue_path)
             print('Issue #{}, URL: {}, Pages: {}'.format(no, url, page_count))
+
+    def package_issue(self, archive_path, issue_path):
+        shutil.make_archive(archive_path, 'zip', issue_path)
+        os.rename(archive_path + '.zip', archive_path + '.cbz')
+        shutil.rmtree(issue_path)
 
     def download_image(self, url, path):
         r = requests.get(url)
