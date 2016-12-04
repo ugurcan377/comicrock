@@ -6,6 +6,7 @@ import requests
 
 from comicrock.comicrock import ComicRock
 from comicrock.database import ComicDatabase
+from comicrock.rco_driver import RCODriver
 
 
 @click.group()
@@ -38,13 +39,17 @@ def search(query, field, verbose):
 @cli.command()
 @click.option('--start', default=0, type=int, help='Download starting from this chapter')
 @click.option('--end', default=-1, type=int, help='Download to this chapter')
+@click.option('--driver', type=click.Choice(['rco']))
 @click.option('--dry-run', is_flag=True, help='Start a test run without downloading')
 @click.argument('key')
-def download(start, end, dry_run, key):
+def download(start, end, driver, dry_run, key):
     """Download the comic book series with given book key
         You can learn a book key with search command
     """
-    comic = ComicRock()
+    if driver:
+        comic = RCODriver()
+    else:
+        comic = ComicRock()
     url = urljoin(comic.book_url, key)
     book_name = comic.get_book_name(url)
     click.echo("Downloading {}, this may take a while for long series".format(book_name))
@@ -56,10 +61,14 @@ def download(start, end, dry_run, key):
 
 
 @cli.command()
+@click.option('--driver', type=click.Choice(['rco']))
 @click.argument('keys', nargs=-1)
-def batch(keys):
+def batch(driver, keys):
     """Download multiple series at once"""
-    comic = ComicRock()
+    if driver:
+        comic = RCODriver()
+    else:
+        comic = ComicRock()
     for key in keys:
         url = urljoin(comic.book_url, key)
         book_name = comic.get_book_name(url)

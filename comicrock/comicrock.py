@@ -64,7 +64,7 @@ class ComicRock(object):
                 return 0
             os.makedirs(issue_path, exist_ok=True)
             for page in range(1, page_count+1):
-                print('Downloading Issue #{} Page {} of {}'.format(no, page, page_count), end='\r')
+                print('Downloading Issue #{} Page {} of {}'.format(no, '{0:02d}'.format(page), page_count), end='\r')
                 page_url = urljoin(self.image_url, '{book}/{chapter}/{page}.jpg'.format(book=serialized_book_name,
                                                                                         chapter=no, page=page))
                 page_path = os.path.join(issue_path, '{0:03d}.jpg'.format(page))
