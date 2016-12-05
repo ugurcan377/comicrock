@@ -57,6 +57,9 @@ class RCODriver(ComicRock):
             raise Exception('There is something wrong with page Javascript!\nProbably a wild Captcha appeared')
         if not dry_run:
             if len(page_list) == 0:
+                fp = open(os.path.join(self.download_path, 'html-log.txt'), 'w')
+                fp.write(str(soup))
+                fp.close()
                 raise Exception('No page found! Probably a wild Captcha appeared')
             if os.path.exists(archive_path+'.cbz'):
                 return 0
