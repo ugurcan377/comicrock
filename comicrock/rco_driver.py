@@ -28,7 +28,7 @@ class RCODriver(ComicRock):
     def download_series(self, url, start=0, end=-1, dry_run=False):
         soup = self.get_html(url)
         book_name = self.get_book_name(url, soup=soup)
-        chapter_list = [urljoin(self.base_url, x['href']) for x in soup.select(self.chapter_selector)]
+        chapter_list = [urljoin(self.base_url, x['href']) for x in soup.select(self.chapter_selector) if 'TPB' not in x['href']]
         book_path = os.path.join(self.download_path, book_name)
         os.makedirs(book_path, exist_ok=True)
         serialized_book_name = url.rpartition('/')[-1]
@@ -51,7 +51,10 @@ class RCODriver(ComicRock):
         archive_path = os.path.join(book_path, issue_name)
         js_text = soup.findAll('script', type="text/javascript")
         regex = re.compile('lstImages.push\("(.*)"\);')
-        page_list = regex.findall(js_text[4].text)
+        try:
+            page_list = regex.findall(js_text[4].text)
+        except IndexError:
+            raise Exception('There is something wrong with page Javascript!\nProbably a wild Captcha appeared')
         if not dry_run:
             if len(page_list) == 0:
                 raise Exception('No page found! Probably a wild Captcha appeared')
