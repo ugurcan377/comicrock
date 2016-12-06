@@ -1,42 +1,20 @@
-from io import BytesIO
 import os
-import shutil
-from urllib.parse import urljoin
+from io import BytesIO
+from urllib.parse import urljoin, quote
 
-from bs4 import BeautifulSoup
-from PIL import Image
 import requests
+from PIL import Image
+
+from comicrock.comicrock import ComicRock
 
 
-class ComicRock(object):
-
+class RCBDriver(ComicRock):
     def __init__(self):
-        self.download_path = os.path.expanduser('~/comics')
-        self.db_path = os.path.join(self.download_path, 'db.json')
-        self.base_url = 'http://readcomics.tv'
-        self.search_url = urljoin(self.base_url, 'comic-list')
-        self.book_url = urljoin(self.base_url, 'comic/')
-        self.image_url = urljoin(self.base_url, 'images/manga/')
-        self.chapter_selector = '.ch-name'
-        self.book_name_selector = 'td strong'
-        self.author_selector = '.manga-details td span'
-        self.genre_selector = '.manga-details td a'
-
-    def get_html(self, link):
-        r = requests.get(link)
-        if not r.ok:
-            raise requests.HTTPError("Book Not Found")
-        soup = BeautifulSoup(r.text, 'html.parser')
-        return soup
-
-    def get_book_url(self, key):
-        return urljoin(self.book_url, key)
-
-    def get_book_name(self, url, soup=None):
-        if soup is None:
-            soup = self.get_html(url)
-        name = soup.select(self.book_name_selector)[0].text
-        return name.replace('/', '-')
+        super().__init__()
+        self.base_url = 'http://readcomicbooksonline.com'
+        self.book_url = self.base_url
+        self.chapter_selector = '.chapter a'
+        self.book_name_selector = '.page-title'
 
     def download_series(self, url, start=0, end=-1, dry_run=False):
         soup = self.get_html(url)
@@ -48,8 +26,9 @@ class ComicRock(object):
         if end < 0:
             end = len(chapter_list)
         print('This book has {} issues.'.format(len(chapter_list)))
+        chapter_list.reverse()
         for chapter_url in chapter_list:
-            chapter_no = chapter_url.rpartition('/')[-1].split('-')[-1]
+            chapter_no = chapter_url.rpartition('/')[-1].split('_')[-1]
             no = int(chapter_no)
             if start <= no <= end:
                 self.download_issue(chapter_no, chapter_url, book_name, serialized_book_name, book_path, dry_run)
@@ -57,10 +36,16 @@ class ComicRock(object):
 
     def download_issue(self, no, url, book_name, serialized_book_name, book_path, dry_run):
         soup = self.get_html(url)
-        page_count = soup.select('div.ct-right div.label')[0].text
-        page_count = [int(s) for s in page_count.split() if s.isdigit()][0]
+        if len(soup.select('.placeholder')) > 0:
+            print('Issue #{} was a placeholder page. Sorry!'.format(no))
+            return -1
+        page_count = soup.select('.pager span select[name="page"] option')
+        page_count = int(len(page_count) / 2)
         issue_name = '{name}-{no}'.format(name=book_name, no='{0:03d}'.format(int(no)))
         issue_path = os.path.join(book_path, issue_name)
+        issue_base_url = url.rpartition('/')[0]
+        image_path = soup.select('.mid .picture')[0]['src'][:-7]
+        page_base_url = urljoin(issue_base_url, quote(image_path)) + '{0:03d}.jpg'
         archive_path = os.path.join(book_path, issue_name)
         if not dry_run:
             if os.path.exists(archive_path+'.cbz'):
@@ -68,8 +53,7 @@ class ComicRock(object):
             os.makedirs(issue_path, exist_ok=True)
             for page in range(1, page_count+1):
                 print('Downloading Issue #{} Page {} of {}'.format(no, '{0:02d}'.format(page), page_count), end='\r')
-                page_url = urljoin(self.image_url, '{book}/{chapter}/{page}.jpg'.format(book=serialized_book_name,
-                                                                                        chapter=no, page=page))
+                page_url = page_base_url.format(page)
                 page_path = os.path.join(issue_path, '{0:03d}.jpg'.format(page))
                 try:
                     self.download_image(page_url, page_path)
@@ -78,15 +62,20 @@ class ComicRock(object):
             self.package_issue(archive_path, issue_path)
         else:
             print('Issue #{}, URL: {}, Pages: {}'.format(no, url, page_count))
-            print('Issue Path: {}'.format(issue_path))
-
-    def package_issue(self, archive_path, issue_path):
-        shutil.make_archive(archive_path, 'zip', issue_path)
-        os.rename(archive_path + '.zip', archive_path + '.cbz')
-        shutil.rmtree(issue_path)
+            print('Issue Path: {}, Image URL {}'.format(issue_path, page_base_url))
 
     def download_image(self, url, path):
-        r = requests.get(url)
+        headers = {
+            'Accept-Encoding': 'gzip, deflate, sdch',
+            'Accept-Language': 'en-US,en;q=0.8,tr;q=0.6',
+            'Upgrade-Insecure-Requests': '1',
+            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/53.0.2785.143 Chrome/53.0.2785.143 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Referer': url,
+            'Connection': 'keep-alive',
+            'Cache-Control': 'max-age=0',
+        }
+        r = requests.get(url, headers=headers)
         i = Image.open(BytesIO(r.content))
         try:
             i.load()

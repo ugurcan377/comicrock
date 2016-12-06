@@ -4,9 +4,15 @@ from urllib.parse import urljoin
 import click
 import requests
 
+from comicrock.castle_driver import CastleDriver
 from comicrock.comicrock import ComicRock
 from comicrock.database import ComicDatabase
 from comicrock.rco_driver import RCODriver
+from comicrock.rcb_driver import RCBDriver
+
+DRIVERS = {'rco': RCODriver,
+           'rcb': RCBDriver,
+           'castle': CastleDriver}
 
 
 @click.group()
@@ -39,18 +45,16 @@ def search(query, field, verbose):
 @cli.command()
 @click.option('--start', default=0, type=int, help='Download starting from this chapter')
 @click.option('--end', default=-1, type=int, help='Download to this chapter')
-@click.option('--driver', type=click.Choice(['rco']))
+@click.option('--driver', type=click.Choice(['rco', 'rcb', 'castle']))
 @click.option('--dry-run', is_flag=True, help='Start a test run without downloading')
 @click.argument('key')
 def download(start, end, driver, dry_run, key):
     """Download the comic book series with given book key
         You can learn a book key with search command
     """
-    if driver:
-        comic = RCODriver()
-    else:
-        comic = ComicRock()
-    url = urljoin(comic.book_url, key)
+    driver_obj = DRIVERS.get(driver, ComicRock)
+    comic = driver_obj()
+    url = comic.get_book_url(key)
     book_name = comic.get_book_name(url)
     click.echo("Downloading {}, this may take a while for long series".format(book_name))
     try:
@@ -61,16 +65,14 @@ def download(start, end, driver, dry_run, key):
 
 
 @cli.command()
-@click.option('--driver', type=click.Choice(['rco']))
+@click.option('--driver', type=click.Choice(['rco', 'rcb', 'castle']))
 @click.argument('keys', nargs=-1)
 def batch(driver, keys):
     """Download multiple series at once"""
-    if driver:
-        comic = RCODriver()
-    else:
-        comic = ComicRock()
+    driver_obj = DRIVERS.get(driver, ComicRock)
+    comic = driver_obj()
     for key in keys:
-        url = urljoin(comic.book_url, key)
+        url = comic.get_book_url(key)
         book_name = comic.get_book_name(url)
         click.echo("Downloading {}, this may take a while for long series".format(book_name))
         try:
