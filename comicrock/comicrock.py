@@ -21,6 +21,7 @@ class ComicRock(object):
         self.book_name_selector = 'td strong'
         self.author_selector = '.manga-details td span'
         self.genre_selector = '.manga-details td a'
+        self.comic_selector = '.serie-box ul li a'
 
     def get_html(self, link):
         r = requests.get(link)
@@ -37,6 +38,17 @@ class ComicRock(object):
             soup = self.get_html(url)
         name = soup.select(self.book_name_selector)[0].text
         return name.replace('/', '-')
+
+    def get_metadata(self, soup):
+        author_fields = soup.select(self.author_selector)
+        author_tag = [x for x in author_fields if x.text == 'Author:'][0]
+        genre_fields = soup.select(self.genre_selector)
+        return {'author': [x.text.strip().split(', ') for x in author_tag.parent.next_siblings if x != '\n'][0],
+                'genre': [x.text for x in genre_fields]}
+
+    def get_comic_list(self):
+        soup = self.get_html(self.search_url)
+        return soup.select(self.comic_selector)
 
     def download_series(self, url, start=0, end=-1, dry_run=False):
         soup = self.get_html(url)

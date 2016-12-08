@@ -1,6 +1,4 @@
 #! /usr/bin/python3
-from urllib.parse import urljoin
-
 import click
 import requests
 
@@ -39,7 +37,10 @@ def search(query, field, verbose):
         click.echo(results)
     else:
         for k, v in results.items():
-            click.echo('{} ---> {} ({})'.format(k, v['name'], ', '.join(v['author'])))
+            if v.get('rcb_only', False):
+                click.echo('[RCB]{} ---> {} ({})'.format(k, v['name'], ', '.join(v['author'])))
+            else:
+                click.echo('{} ---> {} ({})'.format(k, v['name'], ', '.join(v['author'])))
 
 
 @cli.command()
@@ -86,7 +87,13 @@ def batch(driver, keys):
 def generatedb():
     """Generate a comic database for better searching"""
     database = ComicDatabase()
-    database.generate()
+    try:
+        db = database.load()
+        click.echo("Existing Database Found! Updating")
+    except FileNotFoundError:
+        click.echo('Database Not Found! Creating"')
+        db = {}
+    database.generate(db)
 
 def main():
     cli()

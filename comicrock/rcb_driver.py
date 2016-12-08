@@ -15,6 +15,18 @@ class RCBDriver(ComicRock):
         self.book_url = self.base_url
         self.chapter_selector = '.chapter a'
         self.book_name_selector = '.page-title'
+        self.author_selector = '#statsblock td.title'
+        self.comic_selector = '#primary .field-content a'
+        self.search_url = urljoin(self.base_url, 'comics-list')
+
+    def get_metadata(self, soup):
+        fields = soup.select(self.author_selector)
+        author_tag = [x for x in fields if x.text == 'Author/Artist'][0]
+        publisher_tag = [x for x in fields if x.text == 'Publisher'][0]
+        genre_tag = [x for x in fields if x.text == 'Genres'][0]
+        return {'author': [x.text.strip().split(', ') for x in author_tag.next_siblings if x != ' '][0],
+                'genre': [x.text.strip().split(', ') for x in genre_tag.next_siblings if x != ' '][0],
+                'publisher': [x.text.strip() for x in publisher_tag.next_siblings if x != ' '][0]}
 
     def download_series(self, url, start=0, end=-1, dry_run=False):
         soup = self.get_html(url)
