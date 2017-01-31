@@ -51,12 +51,12 @@ class RCBDriver(ComicRock):
         if len(soup.select('.placeholder')) > 0:
             print('Issue #{} was a placeholder page. Sorry!'.format(no))
             return -1
-        page_count = soup.select('.pager span select[name="page"] option')
+        page_count = soup.select('select[name="page"] option')
         page_count = int(len(page_count) / 2)
         issue_name = '{name}-{no}'.format(name=book_name, no='{0:03d}'.format(int(no)))
         issue_path = os.path.join(book_path, issue_name)
         issue_base_url = url.rpartition('/')[0]
-        image_path = soup.select('.mid .picture')[0]['src'][:-7]
+        image_path = soup.select('.picture')[0]['src'][:-7]
         page_base_url = urljoin(issue_base_url, quote(image_path)) + '{0:03d}.jpg'
         archive_path = os.path.join(book_path, issue_name)
         if not dry_run:
