@@ -13,17 +13,17 @@ class ComicDatabase(ComicRock):
 
     def create_database(self, db):
         rcb = RCBDriver()
-        comics = self.get_comic_list()
+        # comics = self.get_comic_list()
         rcb_comics = rcb.get_comic_list()
-        for i, serie in enumerate(comics):
-            print("[DEFAULT]Progress {} out of {}".format(i, len(comics)), end='\r')
-            serie_key = serie['href'].rpartition('/')[-1]
-            if not db.get(serie_key, False):
-                db[serie_key] = {"name": serie.text.replace('/', '-'), "url": serie["href"]}
-                soup = self.get_html(serie["href"])
-                db[serie_key].update(self.get_metadata(soup))
+        # for i, serie in enumerate(comics):
+        #     print("[DEFAULT]Progress {} out of {}".format(i, len(comics)), end='\r')
+        #     serie_key = serie['href'].rpartition('/')[-1]
+        #     if not db.get(serie_key, False):
+        #         db[serie_key] = {"name": serie.text.replace('/', '-'), "url": serie["href"]}
+        #         soup = self.get_html(serie["href"])
+        #         db[serie_key].update(self.get_metadata(soup))
         for i, serie in enumerate(rcb_comics):
-            print("[RCB_DRIVER]Progress {} out of {}".format(i, len(comics)), end='\r')
+            print("[RCB_DRIVER]Progress {} out of {}".format(i, len(rcb_comics)), end='\r')
             serie_key = serie['href'].rpartition('/')[-1]
             if db.get(serie_key) and db[serie_key].get('rcb_url'):
                 continue

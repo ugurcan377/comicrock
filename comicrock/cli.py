@@ -53,7 +53,7 @@ def download(start, end, driver, dry_run, key):
     """Download the comic book series with given book key
         You can learn a book key with search command
     """
-    driver_obj = DRIVERS.get(driver, ComicRock)
+    driver_obj = DRIVERS.get(driver, RCBDriver)
     comic = driver_obj()
     url = comic.get_book_url(key)
     book_name = comic.get_book_name(url)

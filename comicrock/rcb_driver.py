@@ -11,7 +11,7 @@ from comicrock.comicrock import ComicRock
 class RCBDriver(ComicRock):
     def __init__(self):
         super().__init__()
-        self.base_url = 'http://readcomicbooksonline.com'
+        self.base_url = 'http://readcomicbooksonline.net'
         self.book_url = self.base_url
         self.chapter_selector = '.chapter a'
         self.book_name_selector = '.page-title'
