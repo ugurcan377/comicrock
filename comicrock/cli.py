@@ -70,7 +70,7 @@ def download(start, end, driver, dry_run, key):
 @click.argument('keys', nargs=-1)
 def batch(driver, keys):
     """Download multiple series at once"""
-    driver_obj = DRIVERS.get(driver, ComicRock)
+    driver_obj = DRIVERS.get(driver, RCBDriver)
     comic = driver_obj()
     for key in keys:
         url = comic.get_book_url(key)
