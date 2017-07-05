@@ -37,7 +37,7 @@ class ComicRock(object):
         if soup is None:
             soup = self.get_html(url)
         name = soup.select(self.book_name_selector)[0].text
-        return name.replace('/', ' ').replace('-)', ')')
+        return name.replace('/', ' ').replace('-)', ')').replace(':', '')
 
     def get_metadata(self, soup):
         author_fields = soup.select(self.author_selector)
