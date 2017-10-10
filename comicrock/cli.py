@@ -48,18 +48,18 @@ def search(query, field, verbose):
 @click.option('--end', default=-1, type=int, help='Download to this chapter')
 @click.option('--driver', type=click.Choice(['rco', 'rcb', 'castle']))
 @click.option('--dry-run', is_flag=True, help='Start a test run without downloading')
+@click.option('--no-fav', is_flag=True, help='Do not add this comic to favorites')
 @click.argument('key')
-def download(start, end, driver, dry_run, key):
+def download(start, end, driver, dry_run, no_fav, key):
     """Download the comic book series with given book key
         You can learn a book key with search command
     """
     driver_obj = DRIVERS.get(driver, RCBDriver)
     comic = driver_obj()
-    url = comic.get_book_url(key)
-    book_name = comic.get_book_name(url)
+    book_name = comic.get_book_name(key)
     click.echo("Downloading {}, this may take a while for long series".format(book_name))
     try:
-        result = comic.download_series(url, start=start, end=end, dry_run=dry_run)
+        result = comic.download_series(key, start=start, end=end, dry_run=dry_run, no_fav=no_fav)
         click.echo('Download finished, enjoy your books at {}'.format(result))
     except requests.HTTPError as exc:
         click.echo('Download Failed: {}'.format(exc))
@@ -73,11 +73,10 @@ def batch(driver, keys):
     driver_obj = DRIVERS.get(driver, RCBDriver)
     comic = driver_obj()
     for key in keys:
-        url = comic.get_book_url(key)
-        book_name = comic.get_book_name(url)
+        book_name = comic.get_book_name(key)
         click.echo("Downloading {}, this may take a while for long series".format(book_name))
         try:
-            result = comic.download_series(url)
+            result = comic.download_series(key)
             click.echo('Download finished, enjoy your books at {}'.format(result))
         except requests.HTTPError as exc:
             click.echo('Download Failed: {}'.format(exc))
@@ -94,6 +93,21 @@ def generatedb():
         click.echo('Database Not Found! Creating"')
         db = {}
     database.generate(db)
+
+@cli.command()
+def update():
+    """Update your favorite comics"""
+    driver_obj = DRIVERS.get('', RCBDriver)
+    comic = driver_obj()
+    keys = comic.get_fav_list()
+    for key in keys:
+        book_name = comic.get_book_name(key)
+        click.echo("Downloading {}, this may take a while for long series".format(book_name))
+        try:
+            result = comic.download_series(key)
+            click.echo('Download finished, enjoy your books at {}'.format(result))
+        except requests.HTTPError as exc:
+            click.echo('Download Failed: {}'.format(exc))
 
 def main():
     cli()

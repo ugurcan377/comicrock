@@ -34,7 +34,8 @@ class ComicRock(object):
     def get_book_url(self, key):
         return urljoin(self.book_url, key)
 
-    def get_book_name(self, url, soup=None):
+    def get_book_name(self, key, soup=None):
+        url = self.get_book_url(key)
         if soup is None:
             soup = self.get_html(url)
         name = soup.select(self.book_name_selector)[0].text
@@ -50,6 +51,15 @@ class ComicRock(object):
     def get_comic_list(self):
         soup = self.get_html(self.search_url)
         return soup.select(self.comic_selector)
+
+    def get_fav_list(self):
+        try:
+            with open(self.fav_path, 'r') as f:
+                fav_list = f.readlines()
+        except FileNotFoundError:
+            with open(self.fav_path, 'a+') as f:
+                fav_list = []
+        return [fav.strip() for fav in fav_list]
 
     def download_series(self, url, start=0, end=-1, dry_run=False):
         pass

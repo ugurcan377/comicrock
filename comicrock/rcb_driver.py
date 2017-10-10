@@ -28,9 +28,10 @@ class RCBDriver(ComicRock):
                 'genre': [x.text.strip().split(', ') for x in genre_tag.next_siblings if x != ' '][0],
                 'publisher': [x.text.strip() for x in publisher_tag.next_siblings if x != ' '][0]}
 
-    def download_series(self, url, start=0, end=-1, dry_run=False):
+    def download_series(self, key, start=0, end=-1, dry_run=False, no_fav=False):
+        url = self.get_book_url(key)
         soup = self.get_html(url)
-        book_name = self.get_book_name(url, soup=soup)
+        book_name = self.get_book_name(key, soup=soup)
         chapter_list = [x['href'] for x in soup.select(self.chapter_selector)]
         book_path = os.path.join(self.download_path, book_name)
         os.makedirs(book_path, exist_ok=True)
@@ -44,6 +45,10 @@ class RCBDriver(ComicRock):
             no = int(chapter_no)
             if start <= no <= end:
                 self.download_issue(chapter_no, chapter_url, book_name, serialized_book_name, book_path, dry_run)
+        fav_list = self.get_fav_list()
+        if not no_fav and key not in fav_list:
+            with open(self.fav_path, 'a') as f:
+                f.write(key + '\n')
         return book_path
 
     def download_issue(self, no, url, book_name, serialized_book_name, book_path, dry_run):
